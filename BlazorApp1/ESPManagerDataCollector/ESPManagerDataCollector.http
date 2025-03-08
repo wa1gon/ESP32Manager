@@ -1,0 +1,6 @@
+@ESPManagerDataCollector_HostAddress = http://localhost:5001
+
+GET {{ESPManagerDataCollector_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
