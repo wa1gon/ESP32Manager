@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EspManagerWebServer", "EspManagerWebServer\EspManagerWebServer.csproj", "{49ED71E1-42B4-4F9D-B4EC-3AA2B67A9D16}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ESP32DataCollector", "..\ESP32DataCollect\ESP32DataCollector\ESP32DataCollector.csproj", "{14570FC7-D246-4205-BBE3-E82614DA2E2E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{49ED71E1-42B4-4F9D-B4EC-3AA2B67A9D16}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{49ED71E1-42B4-4F9D-B4EC-3AA2B67A9D16}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{49ED71E1-42B4-4F9D-B4EC-3AA2B67A9D16}.Release|Any CPU.Build.0 = Release|Any CPU
+		{14570FC7-D246-4205-BBE3-E82614DA2E2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14570FC7-D246-4205-BBE3-E82614DA2E2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{14570FC7-D246-4205-BBE3-E82614DA2E2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14570FC7-D246-4205-BBE3-E82614DA2E2E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
