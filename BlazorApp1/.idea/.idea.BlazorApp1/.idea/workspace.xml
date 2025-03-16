@@ -14,11 +14,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="56a15b06-540a-4a42-8c07-586b3a429429" name="Changes" comment="init">
-      <change afterPath="$PROJECT_DIR$/../ESP32DataCollect/ESP32DataCollector/ESP32DataCollector.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../ESP32DataCollect/ESP32DataCollector/UDPListener.cs" afterDir="false" />
+    <list default="true" id="56a15b06-540a-4a42-8c07-586b3a429429" name="Changes" comment="Added datacollector">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.BlazorApp1/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.BlazorApp1/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/EspManager.sln" beforeDir="false" afterPath="$PROJECT_DIR$/EspManager.sln" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -179,7 +176,7 @@
       <option name="presentableId" value="Default" />
       <updated>1741475578517</updated>
       <workItem from="1741475579597" duration="33000" />
-      <workItem from="1741475648845" duration="14974000" />
+      <workItem from="1741475648845" duration="19013000" />
     </task>
     <task id="LOCAL-00001" summary="initial commentment">
       <option name="closed" value="true" />
@@ -213,7 +210,15 @@
       <option name="project" value="LOCAL" />
       <updated>1741636162008</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Added datacollector">
+      <option name="closed" value="true" />
+      <created>1741637461547</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1741637461547</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -238,6 +243,7 @@
     <MESSAGE value="working except has error message about switching ports" />
     <MESSAGE value="working except for a startup warning about kestrel" />
     <MESSAGE value="init" />
-    <option name="LAST_COMMIT_MESSAGE" value="init" />
+    <MESSAGE value="Added datacollector" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added datacollector" />
   </component>
 </project>

@@ -10,4 +10,9 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.2"/>
     </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\BlazorApp1\DatabaseLibrary\DatabaseLibrary.csproj" />
+      <ProjectReference Include="..\..\BlazorApp1\ESPModels\ESPModels.csproj" />
+    </ItemGroup>
 </Project>

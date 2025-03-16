@@ -4,6 +4,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EspManagerWebServer", "EspM
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ESP32DataCollector", "..\ESP32DataCollect\ESP32DataCollector\ESP32DataCollector.csproj", "{14570FC7-D246-4205-BBE3-E82614DA2E2E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ESPModels", "ESPModels\ESPModels.csproj", "{27848AF2-DBE0-4558-8E9E-80D7C385EA61}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatabaseLibrary", "DatabaseLibrary\DatabaseLibrary.csproj", "{9490D059-012E-41B9-B21F-AF404E42FA44}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +22,13 @@ Global
 		{14570FC7-D246-4205-BBE3-E82614DA2E2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{14570FC7-D246-4205-BBE3-E82614DA2E2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{14570FC7-D246-4205-BBE3-E82614DA2E2E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{27848AF2-DBE0-4558-8E9E-80D7C385EA61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{27848AF2-DBE0-4558-8E9E-80D7C385EA61}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{27848AF2-DBE0-4558-8E9E-80D7C385EA61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{27848AF2-DBE0-4558-8E9E-80D7C385EA61}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9490D059-012E-41B9-B21F-AF404E42FA44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9490D059-012E-41B9-B21F-AF404E42FA44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9490D059-012E-41B9-B21F-AF404E42FA44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9490D059-012E-41B9-B21F-AF404E42FA44}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
