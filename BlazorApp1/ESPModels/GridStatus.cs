@@ -7,4 +7,6 @@ public class GridStatus
     public string DeviceName { get; set; }
     public bool IsOnline { get; set; }
     public DateTime LastSeen { get; set; }
+    public TimeSpan UpTime { get; set; }
+    
 }

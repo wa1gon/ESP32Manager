@@ -15,13 +15,19 @@ namespace ESP32DataCollector
         private readonly UdpListenerOptions _options;
         private readonly IServiceProvider _serviceProvider;
         private CancellationTokenSource _stoppingCts;
+        private PostgresContext context;
+        private IProcessPackets processPackets = new ProcessPackets();
+        
 
-        public UDPListener(ILogger<UDPListener> logger, IOptions<UdpListenerOptions> options, IServiceProvider serviceProvider)
+        public UDPListener(ILogger<UDPListener> logger, IOptions<UdpListenerOptions> options, 
+            IServiceProvider serviceProvider, PostgresContext postgresContext)
         {
             _logger = logger;
             _options = options.Value;
             _serviceProvider = serviceProvider;
             _stoppingCts = new CancellationTokenSource();
+            this.context = postgresContext;
+            
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -42,6 +48,11 @@ namespace ESP32DataCollector
         {
             try
             {
+                using (var scope = _serviceProvider.CreateScope())
+                {
+                    var adbContext = scope.ServiceProvider.GetRequiredService<PostgresContext>();
+                    adbContext.Database.EnsureCreated(); 
+                    
                 using (var udpClient = new UdpClient(_options.Port))
                 {
                     var endPoint = new IPEndPoint(IPAddress.Any, _options.Port);
@@ -52,12 +63,11 @@ namespace ESP32DataCollector
                         _logger.LogInformation("Waiting for a packet...");
                         var result = await udpClient.ReceiveAsync();
                         var receivedMessage = Encoding.UTF8.GetString(result.Buffer);
+                        processPackets.ProcessPacketAsync(receivedMessage, adbContext);
                         _logger.LogInformation($"Received message: {receivedMessage}");
 
-                        using (var scope = _serviceProvider.CreateScope())
-                        {
-                            var adbContext = scope.ServiceProvider.GetRequiredService<PostgresContext>();
-                            adbContext.Database.EnsureCreated(); 
+
+
                             // Use dbContext here
                         }
                     }
