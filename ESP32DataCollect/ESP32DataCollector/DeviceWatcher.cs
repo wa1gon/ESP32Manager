@@ -1,17 +1,25 @@
 using DatabaseLibrary;
 using ESPModels;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ESP32DataCollector;
 
 public interface IProcessPackets
 {
     public Task ProcessPacketAsync(string packet, PostgresContext context);
+    public Task CheckDevices(IServiceProvider serviceProvider);
 }
 
-public class ProcessPackets : IProcessPackets
+public class DeviceWatcher : IProcessPackets
 {
     private TimeSpan lastUpTime = TimeSpan.MinValue;
     private DateTime lastRecordedTime = DateTime.MinValue;
+    private readonly IServiceProvider serviceProvider;
+
+    public DeviceWatcher(IServiceProvider sp)
+    {
+        serviceProvider = sp;
+    }
 
     public async Task ProcessPacketAsync(string packet, PostgresContext context)
     {
@@ -48,6 +56,15 @@ public class ProcessPackets : IProcessPackets
             };
             context.GridStatuses.Add(gridStatus);
             await context.SaveChangesAsync();
+        }
+    }
+
+    public async Task CheckDevices(IServiceProvider serviceProvider)
+    {
+        using (var scope = serviceProvider.CreateScope())
+        {
+            var adbContext = scope.ServiceProvider.GetRequiredService<PostgresContext>();
+            // Your logic to check devices using adbContext
         }
     }
 }

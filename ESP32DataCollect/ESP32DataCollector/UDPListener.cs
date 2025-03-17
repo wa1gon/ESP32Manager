@@ -15,7 +15,7 @@ namespace ESP32DataCollector
         private readonly UdpListenerOptions _options;
         private readonly IServiceProvider _serviceProvider;
         private CancellationTokenSource _stoppingCts;
-        private IProcessPackets processPackets = new ProcessPackets();
+        private IProcessPackets processPackets ;
         
 
         public UDPListener(ILogger<UDPListener> logger, IOptions<UdpListenerOptions> options, 
@@ -25,8 +25,7 @@ namespace ESP32DataCollector
             _options = options.Value;
             _serviceProvider = serviceProvider;
             _stoppingCts = new CancellationTokenSource();
-
-            
+            processPackets = new DeviceWatcher(_serviceProvider);
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -51,7 +50,6 @@ namespace ESP32DataCollector
                 {
                     var adbContext = scope.ServiceProvider.GetRequiredService<PostgresContext>();
                     adbContext.Database.EnsureCreated(); 
-                    ProcessPackets processPackets = new ProcessPackets();
                     
                 using (var udpClient = new UdpClient(_options.Port))
                 {
