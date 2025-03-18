@@ -50,11 +50,6 @@ namespace ESP32DataCollector
             TimeSpan UpTime = TimeSpan.Parse(parts[1]);
             DateTime currentTime = DateTime.UtcNow;
 
-            var gap = currentTime - lastRecordedTime;
-
-            lastUpTime = UpTime;
-            lastRecordedTime = currentTime;
-
             var gridStatus = new GridStatus
             {
                 DeviceName = parts[0],
@@ -63,12 +58,24 @@ namespace ESP32DataCollector
                 IsOnline = true,
                 Dtg = currentTime
             };
-            currentGridStatus[parts[0]] = gridStatus;
-            if (UpTime < lastUpTime || gap >= TimeSpan.FromMinutes(1))
+            var found = currentGridStatus.TryGetValue(parts[0], out var prevStatus);
+            if (found)
             {
+                if (currentTime - prevStatus.LastSeen > TimeSpan.FromMinutes(2))
+                {
+                    prevStatus.IsOnline = false;
+                    prevStatus.Id = new Guid();
+                    await SaveStatus(prevStatus);
+                }
+            }
+            else
+            {
+                currentGridStatus[parts[0]] = gridStatus;           
                 await SaveStatus(gridStatus);
             }
+            
         }
+    
 
         public async Task CheckDevices()
         {
