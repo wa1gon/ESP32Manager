@@ -15,7 +15,7 @@ namespace ESP32DataCollector
         private readonly UdpListenerOptions _options;
         private readonly IServiceProvider _serviceProvider;
         private CancellationTokenSource _stoppingCts;
-        private IProcessPackets processPackets ;
+        private DeviceWatcher processPackets ;
         
 
         public UDPListener(ILogger<UDPListener> logger, IOptions<UdpListenerOptions> options, 

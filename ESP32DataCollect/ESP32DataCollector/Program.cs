@@ -18,7 +18,7 @@ builder.Services.Configure<UdpListenerOptions>(builder.Configuration.GetSection(
 
 // Register the UDPListener as a hosted service
 builder.Services.AddSingleton<IHostedService, UDPListener>();
-builder.Services.AddScoped<IProcessPackets, DeviceWatcher>();
+builder.Services.AddScoped<DeviceWatcher, DeviceWatcher>();
 builder.Services.AddDbContextPool<PostgresContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
