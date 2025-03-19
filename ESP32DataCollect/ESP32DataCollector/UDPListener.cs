@@ -30,14 +30,12 @@ namespace ESP32DataCollector
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("UDPListener starting...");
             Task.Run(() => ExecuteAsync(_stoppingCts.Token));
             return Task.CompletedTask;
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("UDPListener stopping...");
             _stoppingCts.Cancel();
             return Task.CompletedTask;
         }
@@ -54,17 +52,13 @@ namespace ESP32DataCollector
                 using (var udpClient = new UdpClient(_options.Port))
                 {
                     var endPoint = new IPEndPoint(IPAddress.Any, _options.Port);
-                    _logger.LogInformation($"Listening for UDP broadcasts on port {_options.Port}...");
 
                     while (!stoppingToken.IsCancellationRequested)
                     {
-                        _logger.LogInformation("Waiting for a packet...");
                         var result = await udpClient.ReceiveAsync();
                         var receivedMessage = Encoding.UTF8.GetString(result.Buffer);
                         await processPackets.ProcessPacketAsync(receivedMessage, adbContext);
                         _logger.LogInformation($"Received message: {receivedMessage}");
-                        
-
                         }
                     }
                 }

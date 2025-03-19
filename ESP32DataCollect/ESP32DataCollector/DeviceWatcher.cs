@@ -58,37 +58,64 @@ namespace ESP32DataCollector
                 IsOnline = true,
                 Dtg = currentTime
             };
+
             var found = currentGridStatus.TryGetValue(parts[0], out var prevStatus);
             if (found)
             {
-                if (currentTime - prevStatus.LastSeen > TimeSpan.FromMinutes(2))
+                if (currentTime - prevStatus.LastSeen > TimeSpan.FromMinutes(2) && prevStatus.IsOnline)
                 {
+                    // Mark the device as down
                     prevStatus.IsOnline = false;
-                    prevStatus.Id = new Guid();
-                    await SaveStatus(prevStatus);
+                    var downStatus = new GridStatus
+                    {
+                        DeviceName = parts[0],
+                        IsOnline = false,
+                        LastSeen = prevStatus.LastSeen,
+                        UpTime = prevStatus.UpTime,
+                        Dtg = currentTime
+                    };
+
+                    currentGridStatus[parts[0]] = downStatus;
+                    await SaveStatus(downStatus);
+                }
+                else if (!prevStatus.IsOnline)
+                {
+                    // Device was previously offline, now it's back online
+                    currentGridStatus[parts[0]] = gridStatus;
+                    await SaveStatus(gridStatus);
                 }
             }
             else
             {
-                currentGridStatus[parts[0]] = gridStatus;           
+                // New device or device status changed
+                currentGridStatus[parts[0]] = gridStatus;
                 await SaveStatus(gridStatus);
             }
-            
         }
-    
-
-        public async Task CheckDevices()
+        private async Task CheckDevices()
         {
             foreach (var kvp in currentGridStatus)
             {
                 string deviceName = kvp.Key;
                 GridStatus status = kvp.Value;
 
-                // Perform your logic with deviceName and status
-                if (DateTime.Now - status.LastSeen > TimeSpan.FromMinutes(2) && status.IsOnline == true)
+                // Log the device name and status
+                var now = DateTime.UtcNow;
+                var ts = TimeSpan.FromMinutes(2);
+
+                if (now - status.LastSeen > ts && status.IsOnline)
                 {
-                    status.IsOnline = false;
-                    await SaveStatus(status);
+                    Console.WriteLine($"down device: {deviceName} , Last Seen: {status.LastSeen}, Is Online: {status.IsOnline}");
+                    var downStatus = new GridStatus
+                    {
+                        DeviceName = deviceName,
+                        IsOnline = false,
+                        LastSeen = status.LastSeen,
+                        UpTime = status.UpTime,
+                        Dtg = DateTime.UtcNow
+                    };
+                    currentGridStatus[deviceName] = downStatus;
+                    await SaveStatus(downStatus);
                 }
             }
         }
