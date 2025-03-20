@@ -1,31 +1,22 @@
-using System;
+
+
 using System.Collections.Concurrent;
-using System.Threading;
-using System.Threading.Tasks;
 using DatabaseLibrary;
 using ESPModels;
-using Microsoft.Extensions.DependencyInjection;
+
 
 namespace ESP32DataCollector
 {
     public class DeviceWatcher
     {
-        private TimeSpan lastUpTime = TimeSpan.MinValue;
-        private DateTime lastRecordedTime = DateTime.MinValue;
         private readonly IServiceProvider serviceProvider;
         private Timer _timer;
-        private PostgresContext context;
         private const int CheckInterval = 6000; // 6 seconds
         private ConcurrentDictionary<string, GridStatus> currentGridStatus = new ConcurrentDictionary<string, GridStatus>();
 
         public DeviceWatcher(IServiceProvider sp)
         {
             serviceProvider = sp;
-            using (var scope = serviceProvider.CreateScope())
-            {
-                context = scope.ServiceProvider.GetRequiredService<PostgresContext>();
-            }
-
             _timer = new Timer(OnTimerElapsed, null, CheckInterval, CheckInterval);
         }
 
@@ -34,9 +25,7 @@ namespace ESP32DataCollector
             if (packet.StartsWith("$"))
                 await ProcessNamedPacketAsync(packet, context);
             else
-            {
                 await ProcessGridStatusAsync(packet, context);
-            }
         }
 
         public Task ProcessNamedPacketAsync(string packet, PostgresContext context)
@@ -76,51 +65,71 @@ namespace ESP32DataCollector
                     };
 
                     currentGridStatus[parts[0]] = downStatus;
-                    await SaveStatus(downStatus);
+                    await SaveStatus(downStatus, context);
                 }
-                else if (!prevStatus.IsOnline)
+                else if (prevStatus.IsOnline == false)
                 {
                     // Device was previously offline, now it's back online
+                    gridStatus.Logged = false;
                     currentGridStatus[parts[0]] = gridStatus;
-                    await SaveStatus(gridStatus);
+                    
+                    await SaveStatus(gridStatus, context);
                 }
             }
             else
             {
                 // New device or device status changed
                 currentGridStatus[parts[0]] = gridStatus;
-                await SaveStatus(gridStatus);
+                await SaveStatus(gridStatus, context);
             }
         }
+
+        private bool IsDown(string deviceName)
+        {
+            var found = currentGridStatus.TryGetValue(deviceName, out var status);
+            if (!found)
+                return false;
+
+            return DateTime.UtcNow - status.LastSeen > TimeSpan.FromMinutes(2);
+        }
+
         private async Task CheckDevices()
         {
-            foreach (var kvp in currentGridStatus)
+            using (var scope = serviceProvider.CreateScope())
             {
-                string deviceName = kvp.Key;
-                GridStatus status = kvp.Value;
-
-                // Log the device name and status
-                var now = DateTime.UtcNow;
-                var ts = TimeSpan.FromMinutes(2);
-
-                if (now - status.LastSeen > ts && status.IsOnline)
+                var context = scope.ServiceProvider.GetRequiredService<PostgresContext>();
+                foreach (var kvp in currentGridStatus)
                 {
-                    Console.WriteLine($"down device: {deviceName} , Last Seen: {status.LastSeen}, Is Online: {status.IsOnline}");
-                    var downStatus = new GridStatus
+                    string deviceName = kvp.Key;
+                    GridStatus status = kvp.Value;
+
+                    // Log the device name and status
+                    var now = DateTime.UtcNow;
+                    var ts = TimeSpan.FromMinutes(2);
+
+                    if (now - status.LastSeen > ts && status.IsOnline)
                     {
-                        DeviceName = deviceName,
-                        IsOnline = false,
-                        LastSeen = status.LastSeen,
-                        UpTime = status.UpTime,
-                        Dtg = DateTime.UtcNow
-                    };
-                    currentGridStatus[deviceName] = downStatus;
-                    await SaveStatus(downStatus);
+                        Console.WriteLine($"down device: {deviceName} , Last Seen: {status.LastSeen}, Is Online: {status.IsOnline}");
+                        var downStatus = new GridStatus
+                        {
+                            DeviceName = deviceName,
+                            IsOnline = false,
+                            LastSeen = status.LastSeen,
+                            UpTime = status.UpTime,
+                            Dtg = DateTime.UtcNow
+                        };
+                        if (downStatus.Logged == false)
+                        {
+                            downStatus.Logged = true;
+                            await SaveStatus(downStatus, context);
+                        }
+                        currentGridStatus[deviceName] = downStatus;
+                    }
                 }
             }
         }
 
-        private async Task SaveStatus(GridStatus status)
+        private async Task SaveStatus(GridStatus status, PostgresContext context)
         {
             context.GridStatuses.Add(status);
             await context.SaveChangesAsync();

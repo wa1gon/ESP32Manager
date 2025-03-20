@@ -8,4 +8,5 @@ public class GridStatus
     public DateTime LastSeen { get; set; }
     public TimeSpan UpTime { get; set; }
     public DateTime Dtg { get; set; }
+    public bool Logged { get; set; } = false;
 }

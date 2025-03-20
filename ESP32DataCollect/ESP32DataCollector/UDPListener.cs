@@ -58,7 +58,7 @@ namespace ESP32DataCollector
                         var result = await udpClient.ReceiveAsync();
                         var receivedMessage = Encoding.UTF8.GetString(result.Buffer);
                         await processPackets.ProcessPacketAsync(receivedMessage, adbContext);
-                        _logger.LogInformation($"Received message: {receivedMessage}");
+                        // _logger.LogInformation($"Received message: {receivedMessage}");
                         }
                     }
                 }
@@ -68,5 +68,6 @@ namespace ESP32DataCollector
                 _logger.LogError(ex, "An error occurred while receiving UDP packets.");
             }
         }
+        
     }
 }
