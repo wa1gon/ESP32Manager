@@ -25,7 +25,7 @@ namespace ESP32DataCollector
             if (packet.StartsWith("$"))
                 await ProcessNamedPacketAsync(packet, context);
             else
-                await ProcessGridStatusAsync(packet, context);
+                await ProcessGridPacketAsync(packet, context);
         }
 
         public Task ProcessNamedPacketAsync(string packet, PostgresContext context)
@@ -33,13 +33,13 @@ namespace ESP32DataCollector
             return Task.CompletedTask;
         }
 
-        public async Task ProcessGridStatusAsync(string packet, PostgresContext context)
+        public async Task ProcessGridPacketAsync(string packet, PostgresContext context)
         {
             var parts = packet.Split('|');
             TimeSpan UpTime = TimeSpan.Parse(parts[1]);
             DateTime currentTime = DateTime.UtcNow;
 
-            var gridStatus = new GridStatus
+            var incomingPacket = new GridStatus
             {
                 DeviceName = parts[0],
                 UpTime = UpTime,
@@ -51,46 +51,55 @@ namespace ESP32DataCollector
             var found = currentGridStatus.TryGetValue(parts[0], out var prevStatus);
             if (found)
             {
-                if (currentTime - prevStatus.LastSeen > TimeSpan.FromMinutes(2) && prevStatus.IsOnline)
+                // var ts = currentTime - prevStatus.LastSeen;
+                if ( prevStatus.IsOnline == false)
                 {
-                    // Mark the device as down
+                    // Mark the device as up
                     prevStatus.IsOnline = false;
-                    var downStatus = new GridStatus
+                    var changeToUp = new GridStatus
                     {
                         DeviceName = parts[0],
-                        IsOnline = false,
-                        LastSeen = prevStatus.LastSeen,
-                        UpTime = prevStatus.UpTime,
-                        Dtg = currentTime
+                        IsOnline = true,
+                        LastSeen = currentTime,
+                        UpTime = incomingPacket.UpTime,
+                        Dtg = currentTime,
+                        Logged = false
                     };
 
-                    currentGridStatus[parts[0]] = downStatus;
-                    await SaveStatus(downStatus, context);
+                    currentGridStatus[parts[0]] = changeToUp;
+                    await SaveStatus(changeToUp, context);
+                    changeToUp.Logged = true;
                 }
-                else if (prevStatus.IsOnline == false)
+                else
                 {
-                    // Device was previously offline, now it's back online
-                    gridStatus.Logged = false;
-                    currentGridStatus[parts[0]] = gridStatus;
-                    
-                    await SaveStatus(gridStatus, context);
+                    prevStatus.LastSeen = currentTime;
+                    prevStatus.UpTime = incomingPacket.UpTime;
+                    currentGridStatus[parts[0]] = prevStatus;
                 }
             }
             else
             {
-                // New device or device status changed
-                currentGridStatus[parts[0]] = gridStatus;
-                await SaveStatus(gridStatus, context);
+                // New device 
+
+                await SaveStatus(incomingPacket, context);
+                incomingPacket.Logged = true;
+                currentGridStatus[parts[0]] = incomingPacket;
+                
             }
         }
 
         private bool IsDown(string deviceName)
         {
             var found = currentGridStatus.TryGetValue(deviceName, out var status);
-            if (!found)
+            if (!found || status is null)
                 return false;
 
-            return DateTime.UtcNow - status.LastSeen > TimeSpan.FromMinutes(2);
+            var ts = (DateTime.UtcNow - status.LastSeen);
+            var from = TimeSpan.FromMinutes(1);
+            Console.WriteLine($"time from now TS {from}, Time since last seen: {ts}");
+            if (ts > from)
+                return true;
+            return false;
         }
 
         private async Task CheckDevices()
@@ -101,34 +110,42 @@ namespace ESP32DataCollector
                 foreach (var kvp in currentGridStatus)
                 {
                     string deviceName = kvp.Key;
-                    GridStatus status = kvp.Value;
+                    GridStatus device = kvp.Value;
+                    if (deviceName.Contains("Bedroom"))
+                        continue;
+                    var down = IsDown(deviceName);
 
-                    // Log the device name and status
-                    var now = DateTime.UtcNow;
-                    var ts = TimeSpan.FromMinutes(2);
-
-                    if (now - status.LastSeen > ts && status.IsOnline)
+                    if (down == true)
                     {
-                        Console.WriteLine($"down device: {deviceName} , Last Seen: {status.LastSeen}, Is Online: {status.IsOnline}");
+                        Console.WriteLine($"Device '{deviceName}' is offline");
                         var downStatus = new GridStatus
                         {
-                            DeviceName = deviceName,
+                            DeviceName = device.DeviceName,
                             IsOnline = false,
-                            LastSeen = status.LastSeen,
-                            UpTime = status.UpTime,
+                            Logged = false,
+                            LastSeen = device.LastSeen,
                             Dtg = DateTime.UtcNow
                         };
-                        if (downStatus.Logged == false)
+
+                        if (device.Logged == false)
                         {
-                            downStatus.Logged = true;
                             await SaveStatus(downStatus, context);
+                            downStatus.Logged = true;
+                            currentGridStatus[deviceName] = downStatus;
+                            Console.WriteLine($"Device down record saved and logged set to true for '{deviceName}'");
                         }
-                        currentGridStatus[deviceName] = downStatus;
+                        else
+                        {
+                            Console.WriteLine($"Device '{deviceName}' is already logged as down");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Device '{deviceName}' is online");
                     }
                 }
             }
         }
-
         private async Task SaveStatus(GridStatus status, PostgresContext context)
         {
             context.GridStatuses.Add(status);

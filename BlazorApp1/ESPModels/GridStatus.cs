@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace ESPModels;
 
 public class GridStatus
@@ -8,5 +10,6 @@ public class GridStatus
     public DateTime LastSeen { get; set; }
     public TimeSpan UpTime { get; set; }
     public DateTime Dtg { get; set; }
+    [NotMapped]
     public bool Logged { get; set; } = false;
 }
