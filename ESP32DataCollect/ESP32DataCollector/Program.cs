@@ -12,8 +12,13 @@ var builder = Host.CreateApplicationBuilder(args);
 
 
 // Add configuration from appsettings.json
-builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+builder.Configuration
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile(Path.Combine(AppContext.BaseDirectory, "secrets.json"), optional: true, reloadOnChange: true);
 
+var email = builder.Configuration["EmailSettings:SenderPassword"];
+Console.WriteLine($"MySecret from config: {email}");
 // Register the configuration for UdpListenerOptions
 builder.Services.Configure<UdpListenerOptions>(builder.Configuration.GetSection("UdpListenerOptions"));
 

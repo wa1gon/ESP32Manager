@@ -9,15 +9,17 @@ namespace ESP32DataCollector
 {
     public class DeviceWatcher
     {
+        private EmailSender sendmail { get; set; } 
         private readonly IServiceProvider serviceProvider;
         private readonly Timer _timer;
         private const int CheckInterval = 6000; // 6 seconds
         private readonly ConcurrentDictionary<string, GridStatus> currentGridStatus = new();
 
-        public DeviceWatcher(IServiceProvider sp)
+        public DeviceWatcher(IServiceProvider sp, IConfiguration  config)
         {
             serviceProvider = sp;
             _timer = new Timer(CheckInterval);
+            sendmail  = new EmailSender( config);
             _timer.Elapsed += async (s, e) => await OnTimerElapsed();
             _timer.AutoReset = true;
             _timer.Start();
@@ -61,6 +63,7 @@ namespace ESP32DataCollector
                     incomingPacket.Logged = false; // Reset logged status for new up event
                     currentGridStatus[parts[0]] = incomingPacket;
                     await SaveStatus(incomingPacket, context);
+                    await sendmail.SendEmailAsync("darryl@wagoner.me", $" {parts[0] } is back online", $"New device '{parts[0]}' detected");
                     Console.WriteLine($"Device '{parts[0]}' is back online");
                 }
                 else
@@ -77,6 +80,7 @@ namespace ESP32DataCollector
                 // New device
                 currentGridStatus[parts[0]] = incomingPacket;
                 await SaveStatus(incomingPacket, context);
+                await sendmail.SendEmailAsync("darryl@wagoner.me", "New device detected", $"New device '{parts[0]}' detected");
                 Console.WriteLine($"New device '{parts[0]}' detected");
             }
         }
@@ -89,7 +93,7 @@ namespace ESP32DataCollector
 
             TimeSpan ts = DateTime.UtcNow - status.LastSeen;
             TimeSpan threshold = TimeSpan.FromMinutes(1);
-            Console.WriteLine($"Device '{deviceName}': Time since last seen: {ts}, Threshold: {threshold}");
+            // Console.WriteLine($"Device '{deviceName}': Time since last seen: {ts}, Threshold: {threshold}");
             return ts > threshold;
         }
 
@@ -118,6 +122,8 @@ namespace ESP32DataCollector
 
                     currentGridStatus[deviceName] = downStatus;
                     await SaveStatus(downStatus, context);
+                    await sendmail.SendEmailAsync("darryl@wagoner.me", "New device detected", $"Device '{deviceName}' is offline");
+                     //  await sendmail.SendEmailAsync("
                     Console.WriteLine($"Device down record saved for '{deviceName}'");
                 }
                 else if (!IsDown(deviceName, out _))
@@ -131,6 +137,7 @@ namespace ESP32DataCollector
         {
             context.GridStatuses.Add(status);
             await context.SaveChangesAsync();
+            await sendmail.SendEmailAsync("darryl@wagoner.me", "New device detected", $"Device '{status.DeviceName}' is added");
         }
 
         private async Task OnTimerElapsed()

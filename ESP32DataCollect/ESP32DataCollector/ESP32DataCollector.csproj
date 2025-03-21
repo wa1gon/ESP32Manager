@@ -8,11 +8,17 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="MailKit" Version="4.11.0" />
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.2"/>
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\..\BlazorApp1\DatabaseLibrary\DatabaseLibrary.csproj" />
       <ProjectReference Include="..\..\BlazorApp1\ESPModels\ESPModels.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <None Update="secrets.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 </Project>

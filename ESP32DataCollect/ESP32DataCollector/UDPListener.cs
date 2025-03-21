@@ -19,13 +19,13 @@ namespace ESP32DataCollector
         
 
         public UDPListener(ILogger<UDPListener> logger, IOptions<UdpListenerOptions> options, 
-            IServiceProvider serviceProvider)
+            IServiceProvider serviceProvider, IConfiguration config)
         {
             _logger = logger;
             _options = options.Value;
             _serviceProvider = serviceProvider;
             _stoppingCts = new CancellationTokenSource();
-            processPackets = new DeviceWatcher(_serviceProvider);
+            processPackets = new DeviceWatcher(_serviceProvider, config);
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
