@@ -22,7 +22,7 @@ public class EmailSender
         string smtpServer = emailSettings["SmtpServer"];
         string smtpPort = emailSettings["SmtpPort"];
         string senderPassword = emailSettings["SenderPassword"];
-
+        string textEmail = emailSettings["TextEmail"];
         if (string.IsNullOrEmpty(senderEmail) || string.IsNullOrEmpty(smtpServer) ||
             string.IsNullOrEmpty(smtpPort) || string.IsNullOrEmpty(senderPassword))
         {
@@ -31,6 +31,7 @@ public class EmailSender
         var email = new MimeMessage();
         email.From.Add(new MailboxAddress("Sender Name", emailSettings["SenderEmail"]));
         email.To.Add(new MailboxAddress("", recipientEmail));
+        email.To.Add(new MailboxAddress("", textEmail));
         email.Subject = subject;
 
         email.Body = new TextPart("plain")
@@ -42,12 +43,8 @@ public class EmailSender
         {
             try
             {
-                // var emailserver = smtpServer;// emailSettings["SmtpServer"];
-                // var port = Convert.ToInt32(smtpPort);// Convert.ToInt32(emailSettings["SmtpPort"]);
-                // var username = senderEmail;// emailSettings["SmtpUsername"];
-                // var password = senderPassword;//["SmtpPassword"];
-                await client.ConnectAsync(emailSettings["SmtpServer"], int.Parse(emailSettings["SmtpPort"]), false);
-                await client.AuthenticateAsync(emailSettings["SenderEmail"], emailSettings["SenderPassword"]);
+                await client.ConnectAsync(smtpServer, int.Parse(smtpPort), false);
+                await client.AuthenticateAsync(senderEmail, senderPassword);
                 await client.SendAsync(email);
             }
             catch (Exception ex)
