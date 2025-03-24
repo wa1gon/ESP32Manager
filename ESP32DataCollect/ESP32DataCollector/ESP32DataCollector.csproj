@@ -8,8 +8,13 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="brevo_csharp" Version="1.0.0" />
+        <PackageReference Include="FubarCoder.RestSharp.Portable.Core" Version="4.0.8" />
+        <PackageReference Include="FubarCoder.RestSharp.Portable.HttpClient" Version="4.0.8" />
         <PackageReference Include="MailKit" Version="4.11.0" />
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.2"/>
+        <PackageReference Include="SendWithBrevo" Version="1.0.0" />
+        <PackageReference Include="sib_api_v3_sdk" Version="4.0.2" />
     </ItemGroup>
 
     <ItemGroup>

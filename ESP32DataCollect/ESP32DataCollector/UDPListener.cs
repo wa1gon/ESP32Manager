@@ -7,47 +7,47 @@ using Microsoft.Extensions.Options;
 using DatabaseLibrary;
 using Microsoft.EntityFrameworkCore;
 
-namespace ESP32DataCollector
+namespace ESP32DataCollector;
+
+public class UDPListener : IHostedService
 {
-    public class UDPListener : IHostedService
-    {
-        private readonly ILogger<UDPListener> _logger;
-        private readonly UdpListenerOptions _options;
-        private readonly IServiceProvider _serviceProvider;
-        private CancellationTokenSource _stoppingCts;
-        private DeviceWatcher processPackets ;
+    private readonly ILogger<UDPListener> _logger;
+    private readonly UdpListenerOptions _options;
+    private readonly IServiceProvider _serviceProvider;
+    private CancellationTokenSource _stoppingCts;
+    private DeviceWatcher processPackets ;
         
 
-        public UDPListener(ILogger<UDPListener> logger, IOptions<UdpListenerOptions> options, 
-            IServiceProvider serviceProvider, IConfiguration config)
-        {
-            _logger = logger;
-            _options = options.Value;
-            _serviceProvider = serviceProvider;
-            _stoppingCts = new CancellationTokenSource();
-            processPackets = new DeviceWatcher(_serviceProvider, config);
-        }
+    public UDPListener(ILogger<UDPListener> logger, IOptions<UdpListenerOptions> options, 
+        IServiceProvider serviceProvider, IConfiguration config)
+    {
+        _logger = logger;
+        _options = options.Value;
+        _serviceProvider = serviceProvider;
+        _stoppingCts = new CancellationTokenSource();
+        processPackets = new DeviceWatcher(_serviceProvider, config);
+    }
 
-        public Task StartAsync(CancellationToken cancellationToken)
-        {
-            Task.Run(() => ExecuteAsync(_stoppingCts.Token));
-            return Task.CompletedTask;
-        }
+    public Task StartAsync(CancellationToken cancellationToken)
+    {
+        Task.Run(() => ExecuteAsync(_stoppingCts.Token));
+        return Task.CompletedTask;
+    }
 
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            _stoppingCts.Cancel();
-            return Task.CompletedTask;
-        }
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        _stoppingCts.Cancel();
+        return Task.CompletedTask;
+    }
 
-        private async Task ExecuteAsync(CancellationToken stoppingToken)
+    private async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        try
         {
-            try
+            using (var scope = _serviceProvider.CreateScope())
             {
-                using (var scope = _serviceProvider.CreateScope())
-                {
-                    var adbContext = scope.ServiceProvider.GetRequiredService<PostgresContext>();
-                    adbContext.Database.EnsureCreated(); 
+                var adbContext = scope.ServiceProvider.GetRequiredService<PostgresContext>();
+                adbContext.Database.EnsureCreated(); 
                     
                 using (var udpClient = new UdpClient(_options.Port))
                 {
@@ -59,15 +59,14 @@ namespace ESP32DataCollector
                         var receivedMessage = Encoding.UTF8.GetString(result.Buffer);
                         await processPackets.ProcessPacketAsync(receivedMessage, adbContext);
                         // _logger.LogInformation($"Received message: {receivedMessage}");
-                        }
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while receiving UDP packets.");
-            }
         }
-        
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while receiving UDP packets.");
+        }
     }
+        
 }
